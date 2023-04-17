@@ -5,4 +5,6 @@
 
 ## How to Run
 To run this project, use latest `node.js v16+`.
-Navigate to the folder, and use `npm run dev`
+Navigate to the folder with `cd syne-app`.
+Run `npm install` to install dependencies.
+Finally, use `npm run dev` to start the web application on your localhost!

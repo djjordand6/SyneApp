@@ -4,36 +4,43 @@ import * as Tone from 'tone';
 
 function App() {
   //UseStates for possible Synth options (envelope only atm)
-  const [attackState, setAttack] = useState(0.005);         //Default val: 0.005
-  const [decayState, setDecay] = useState(0.1);             //Default val: 0.1
-  const [sustainState, setSustain] = useState(0.3);         //Default val: 0.3
-  const [releaseState, setRelease] = useState(1);           //Default val: 1
-  const [oscillatorType, setOscType] = useState("triangle"); //Default val: triangle
+  const [attackState, setAttack] = useState(0.005);           //Default val: 0.005
+  const [decayState, setDecay] = useState(0.1);               //Default val: 0.1
+  const [sustainState, setSustain] = useState(0.3);           //Default val: 0.3
+  const [releaseState, setRelease] = useState(1);             //Default val: 1
+  const [oscillatorType, setOscType] = useState("triangle");  //Default val: triangle
 
-  //Synth Options (default)
+  //Oscillator option state
+  const [osc, setOsc] = useState({
+    type: oscillatorType,
+    count: 3,
+    harmonicity: 1,
+    modulationFrequency: 0.4,
+    modulationIndex: 2,
+    modulationType: "square",
+    phase: 0,
+    spread: 20,
+    width: 0.2
+  });
+
+  //Envelope option state
+  const [env, setEnv] = useState({
+    attack: attackState,
+    decay: decayState,
+    sustain: sustainState,
+    release: releaseState
+  });
+
+  //Synth Options (default options > oscillator + env states)
   const [options, setOptions] = useState({
-    oscillator: {
-        type: oscillatorType,
-        count: 3,
-        harmonicity: 1,
-        modulationFrequency: 0.4,
-        modulationIndex: 2,
-        modulationType: "square",
-        phase: 0,
-        spread: 20,
-        width: 0.2
-    },
-    envelope: {
-        attack: attackState,
-        decay: decayState,
-        sustain: sustainState,
-        release: releaseState
-    }
+    oscillator: osc,
+    envelope: env
   });
 
   //Synth + Keys
   const pianoKeys = document.querySelectorAll(".piano-keys .key");
-  const [synth, setSynth] = useState(new Tone.PolySynth(Tone.Synth).toDestination());
+
+  const [synth, setSynth] = useState(new Tone.PolySynth(Tone.Synth, options).toDestination());
 
   //Character-to-number conversion
   const alphaVal = (s) => s.toLowerCase().charCodeAt(0) - 97
@@ -45,29 +52,64 @@ function App() {
     //console.log(note);
   }
 
-  const updateSynth = () => {
-
+  const changeSynth = () => {
     //Metallic ePiano
-    setSynth(new Tone.PolySynth(Tone.Synth, {
-      oscillator: {
-        type: "sawtooth6",
-        count: 3,
-        harmonicity: 1,
-        modulationFrequency: 0.01,
-        modulationIndex: 2,
-        phase: 0,
-        spread: 20,
-        width: 0.2
-      },
-      envelope: {
-        attack: 0.005,
-        decay: 0.1 ,
-        sustain: 0.3 ,
-        release: 1
-      }
-    }).toDestination());
+    // setSynth(new Tone.PolySynth(Tone.Synth, {
+    //   oscillator: {
+    //     type: "sawtooth6",
+    //     count: 3,
+    //     harmonicity: 1,
+    //     modulationFrequency: 0.01,
+    //     modulationIndex: 2,
+    //     phase: 0,
+    //     spread: 20,
+    //     width: 0.2
+    //   },
+    //   envelope: {
+    //     attack: 0.005,
+    //     decay: 0.1 ,
+    //     sustain: 0.3 ,
+    //     release: 1
+    //   }
+    // }).toDestination());
 
-    console.log(synth);
+    // console.log(synth);
+
+    setAttack(0.007);
+    setSustain(0.25);
+    setOscType("sine");
+
+    console.log(osc);
+    console.log(env);
+  }
+
+  //Updates all states (incl. options AND synth)
+  const updateSynth = () => {
+    setOsc({
+      type: oscillatorType,
+      count: 3,
+      harmonicity: 1,
+      modulationFrequency: 0.4,
+      modulationIndex: 2,
+      modulationType: "square",
+      phase: 0,
+      spread: 20,
+      width: 0.2
+    });
+
+    setEnv({
+        attack: attackState,
+        decay: decayState,
+        sustain: sustainState,
+        release: releaseState
+    });
+
+    setOptions({
+      oscillator: osc,
+      envelope: env
+    });
+
+    setSynth(new Tone.PolySynth(Tone.Synth, options).toDestination());
   }
 
   useLayoutEffect(() => {
@@ -87,7 +129,7 @@ function App() {
             <span>Show Keys</span><input type="checkbox" defaultChecked></input>
           </div>
       </header>
-      <button onClick={() => updateSynth()}>UPDATE SYNTH</button>
+      <button onClick={() => changeSynth()}>CHANGE SYNTH</button> <button onClick={() => updateSynth()}>UPDATE SYNTH</button>
       <ul className="piano-keys">
           <li className="key white" key="C4" onClick={() => playKey("C4")}><span>C4</span></li>
           <li className="key black" key="C#4" onClick={() => playKey("C#4")}><span>C#4</span></li>

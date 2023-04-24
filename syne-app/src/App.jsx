@@ -1,6 +1,7 @@
 import React, {useEffect, useLayoutEffect, useState} from 'react';
 import "./App.css";
 import * as Tone from 'tone';
+import sounds from "./data/sounds";
 
 function App() {
   //UseStates for possible Synth options (envelope only atm)
@@ -9,6 +10,10 @@ function App() {
   const [sustainState, setSustain] = useState(0.3);           //Default val: 0.3
   const [releaseState, setRelease] = useState(1);             //Default val: 1
   const [oscillatorType, setOscType] = useState("triangle");  //Default val: triangle
+  const [volume, setVolume] = useState(0);
+
+  //Keyword search
+  const [keywords, setKeywords] = useState([]);
 
   //Oscillator option state
   const [osc, setOsc] = useState({
@@ -31,16 +36,10 @@ function App() {
     release: releaseState
   });
 
-  //Synth Options (default options > oscillator + env states)
-  const [options, setOptions] = useState({
-    oscillator: osc,
-    envelope: env
-  });
-
   //Synth + Keys
   const pianoKeys = document.querySelectorAll(".piano-keys .key");
-
-  const [synth, setSynth] = useState(new Tone.PolySynth(Tone.Synth, options).toDestination());
+  const [synth, setSynth] = useState(new Tone.PolySynth(Tone.Synth, {envelope: env, oscillator: osc, volume: volume}).toDestination());
+  const [keyShown, setKeyShown] = useState(true);
 
   //Character-to-number conversion
   const alphaVal = (s) => s.toLowerCase().charCodeAt(0) - 97
@@ -52,40 +51,15 @@ function App() {
     //console.log(note);
   }
 
+  //Changes synth
   const changeSynth = () => {
-    //Metallic ePiano
-    // setSynth(new Tone.PolySynth(Tone.Synth, {
-    //   oscillator: {
-    //     type: "sawtooth6",
-    //     count: 3,
-    //     harmonicity: 1,
-    //     modulationFrequency: 0.01,
-    //     modulationIndex: 2,
-    //     phase: 0,
-    //     spread: 20,
-    //     width: 0.2
-    //   },
-    //   envelope: {
-    //     attack: 0.005,
-    //     decay: 0.1 ,
-    //     sustain: 0.3 ,
-    //     release: 1
-    //   }
-    // }).toDestination());
-
-    // console.log(synth);
-
-    setAttack(0.007);
-    setSustain(0.25);
-    setOscType("sine");
-
-    console.log(osc);
-    console.log(env);
+    //changes to Metallic ePiano from sounds.js >>>> needs change
+    setSynth(new Tone.PolySynth(Tone.Synth, sounds[0]).toDestination());
   }
 
   //Updates all states (incl. options AND synth)
   const updateSynth = () => {
-    setOsc({
+    const updateOsc = {
       type: oscillatorType,
       count: 3,
       harmonicity: 1,
@@ -95,41 +69,78 @@ function App() {
       phase: 0,
       spread: 20,
       width: 0.2
-    });
+    };
 
-    setEnv({
-        attack: attackState,
-        decay: decayState,
-        sustain: sustainState,
-        release: releaseState
-    });
+    const updateEnv = {
+      attack: attackState,
+      decay: decayState,
+      sustain: sustainState,
+      release: releaseState
+    };
 
-    setOptions({
-      oscillator: osc,
-      envelope: env
-    });
+    setOsc(updateOsc);
+    setEnv(updateEnv);
+    
+    setSynth(new Tone.PolySynth(Tone.Synth, {
+      envelope: updateEnv, 
+      oscillator: updateOsc,
+      volume: volume
+    }).toDestination());
+    console.log(synth.options.envelope, synth.options.oscillator);
+  }
 
-    setSynth(new Tone.PolySynth(Tone.Synth, options).toDestination());
+  const randomise = () => {
+    //TODO: RANDOMISE PARAMS!!!! 
+  }
+
+  //Change Volume param (not instant)
+  const changeVolume = (e) => {
+    setVolume(e.target.value);
+  }
+
+  //Update keyword array for search in sounds.js
+  const updateKeywords = (e) => {
+    const kw = e.target.value;
+    setKeywords(kw.split(','));
+  }
+
+  //Helper function to set state of keyShown
+  const toggleKeys = () => {
+    if(keyShown === true) {
+      setKeyShown(false);
+    } else {
+      setKeyShown(true);
+    }
   }
 
   useLayoutEffect(() => {
     document.addEventListener("keydown", async () => {
       await Tone.start();
     });
-  }, [])
+  }, []);
+
+  //Show/hide Keys
+  useEffect(() => {
+    pianoKeys.forEach(key => {
+      key.classList.toggle("hide");
+    });
+  }, [keyShown])
   
   return (
     <>
     <div className="piano-container">
       <header>
           <div className="column volume-slider">
-            <span>Volume</span><input type="range" min="0" max="1" defaultValue="0.5" step="any"></input>
+            <span>Volume</span><input type="range" min="-25" max="10" value={volume} step="any" onChange={(e) => changeVolume(e)}></input>
           </div>
           <div className="column keys-checkbox">
-            <span>Show Keys</span><input type="checkbox" defaultChecked></input>
+            <span>Show Keys</span><input type="checkbox" onClick={() => toggleKeys()}></input>
           </div>
       </header>
-      <button onClick={() => changeSynth()}>CHANGE SYNTH</button> <button onClick={() => updateSynth()}>UPDATE SYNTH</button>
+      <input type="input" className="keyword-input" placeholder="Keywords" onChange={(e) => updateKeywords(e)}></input>
+      <button onClick={() => changeSynth()}>Apply!</button>
+      <br></br><br></br>
+      <button onClick={() => randomise()}>Randomise!</button> 
       <ul className="piano-keys">
           <li className="key white" key="C4" onClick={() => playKey("C4")}><span>C4</span></li>
           <li className="key black" key="C#4" onClick={() => playKey("C#4")}><span>C#4</span></li>
@@ -148,7 +159,7 @@ function App() {
           <li className="key white" key="D5" onClick={() => playKey("D5")}><span>D5</span></li>
           <li className="key black" key="D#5" onClick={() => playKey("D#5")}><span>D#5</span></li>
           <li className="key white" key="E5"onClick={() => playKey("E5")}><span>E5</span></li>
-        </ul>
+      </ul>
     </div>
     </>
   )

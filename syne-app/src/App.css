@@ -106,3 +106,7 @@ header input {
     bottom: 13px;
     color: #888888;
 }
+
+.drag-slider input {
+    accent-color: #fff;
+}

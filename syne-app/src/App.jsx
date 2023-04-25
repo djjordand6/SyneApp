@@ -11,6 +11,7 @@ function App() {
   const [releaseState, setRelease] = useState(1);             //Default val: 1
   const [oscillatorType, setOscType] = useState("triangle");  //Default val: triangle
   const [volume, setVolume] = useState(0);
+  const [noteDrag, setNoteDrag] = useState(0.25);
 
   //Keyword search
   const [keywords, setKeywords] = useState([]);
@@ -44,6 +45,7 @@ function App() {
   //Character-to-number conversion
   const alphaVal = (s) => s.toLowerCase().charCodeAt(0) - 97
 
+  //Plays the given key
   const playKey = (note) => {
     const now = Tone.now();
     synth.triggerAttack(note, now);
@@ -93,15 +95,34 @@ function App() {
     //TODO: RANDOMISE PARAMS!!!! 
   }
 
-  //Change Volume param (not instant)
-  const changeVolume = (e) => {
-    setVolume(e.target.value);
+  //Looks up the keywords in the sounds database
+  //Assigns a score for how well a sound's keywords fit
+  const soundLookup = () => {
+    var bestFit = []
+
+    sounds.forEach(sound => {
+      const skw = sound.keywords.toString().split(" ");
+
+      var score = 0;
+      keywords.forEach(word => {
+        if(skw.includes(word)) {
+          score++;
+        }
+      });
+
+      bestFit.push({sound, score});
+    });
+
+    bestFit.sort((a, b) => (a.score > b.score) ? -1 : 1)
+    console.log(bestFit);
+    //console.log(bestFit[0]);
+    //console.log(bestFit[0].sound);
   }
 
   //Update keyword array for search in sounds.js
   const updateKeywords = (e) => {
     const kw = e.target.value;
-    setKeywords(kw.split(','));
+    setKeywords(kw.toLowerCase().split(" "));
   }
 
   //Helper function to set state of keyShown
@@ -131,14 +152,17 @@ function App() {
     <div className="piano-container">
       <header>
           <div className="column volume-slider">
-            <span>Volume</span><input type="range" min="-25" max="10" value={volume} step="any" onChange={(e) => changeVolume(e)}></input>
+            <span>Volume</span><input type="range" min="-25" max="10" value={volume} step="any" onChange={(e) => setVolume(e.target.value)}></input>
+          </div>
+          <div className="column drag-slider">
+            <span>Note Drag</span><input type="range" min="0" max="3" value={noteDrag} step="any" onChange={(e) => setNoteDrag(e.target.value)}></input>
           </div>
           <div className="column keys-checkbox">
             <span>Show Keys</span><input type="checkbox" onClick={() => toggleKeys()}></input>
           </div>
       </header>
       <input type="input" className="keyword-input" placeholder="Keywords" onChange={(e) => updateKeywords(e)}></input>
-      <button onClick={() => changeSynth()}>Apply!</button>
+      <button onClick={() => soundLookup()}>Apply!</button>
       <br></br><br></br>
       <button onClick={() => randomise()}>Randomise!</button> 
       <ul className="piano-keys">

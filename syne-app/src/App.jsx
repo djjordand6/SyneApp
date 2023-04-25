@@ -4,6 +4,9 @@ import * as Tone from 'tone';
 import sounds from "./data/sounds";
 
 function App() {
+  //State for AudioContext start
+  const [contextStarted, setStarted] = useState(false);
+
   //UseStates for possible Synth options (envelope only atm)
   const [attackState, setAttack] = useState(0.005);           //Default val: 0.005
   const [decayState, setDecay] = useState(0.1);               //Default val: 0.1
@@ -17,8 +20,20 @@ function App() {
   const [keywords, setKeywords] = useState([]);
 
   //Oscillator option state
+  // const [osc, setOsc] = useState({
+  //   type: oscillatorType,
+  //   count: 3,
+  //   harmonicity: 1,
+  //   modulationFrequency: 0.4,
+  //   modulationIndex: 2,
+  //   modulationType: "square",
+  //   phase: 0,
+  //   spread: 20,
+  //   width: 0.2
+  // });
+
   const [osc, setOsc] = useState({
-    type: oscillatorType,
+    type: "sawtooth",
     count: 3,
     harmonicity: 1,
     modulationFrequency: 0.4,
@@ -30,11 +45,18 @@ function App() {
   });
 
   //Envelope option state
+  // const [env, setEnv] = useState({
+  //   attack: attackState,
+  //   decay: decayState,
+  //   sustain: sustainState,
+  //   release: releaseState
+  // });
+
   const [env, setEnv] = useState({
-    attack: attackState,
-    decay: decayState,
-    sustain: sustainState,
-    release: releaseState
+    attack: 0.01,
+    decay: 0.1,
+    sustain: 0.3,
+    release: 0.5
   });
 
   //Synth + Keys
@@ -42,7 +64,7 @@ function App() {
   const [synth, setSynth] = useState(new Tone.PolySynth(Tone.Synth, {envelope: env, oscillator: osc, volume: volume}).toDestination());
   const [keyShown, setKeyShown] = useState(true);
 
-  //Character-to-number conversion
+  //Character-to-number conversion -> for randomise
   const alphaVal = (s) => s.toLowerCase().charCodeAt(0) - 97
 
   //Plays the given key
@@ -134,11 +156,12 @@ function App() {
     }
   }
 
-  useLayoutEffect(() => {
-    document.addEventListener("keydown", async () => {
+  document.addEventListener("click", async () => {
+    if(contextStarted === false) {
       await Tone.start();
-    });
-  }, []);
+      setStarted(true);
+    }
+  });
 
   //Show/hide Keys
   useEffect(() => {

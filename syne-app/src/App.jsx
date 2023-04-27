@@ -20,20 +20,8 @@ function App() {
   const [keywords, setKeywords] = useState([]);
 
   //Oscillator option state
-  // const [osc, setOsc] = useState({
-  //   type: oscillatorType,
-  //   count: 3,
-  //   harmonicity: 1,
-  //   modulationFrequency: 0.4,
-  //   modulationIndex: 2,
-  //   modulationType: "square",
-  //   phase: 0,
-  //   spread: 20,
-  //   width: 0.2
-  // });
-
   const [osc, setOsc] = useState({
-    type: "sawtooth",
+    type: oscillatorType,
     count: 3,
     harmonicity: 1,
     modulationFrequency: 0.4,
@@ -44,26 +32,38 @@ function App() {
     width: 0.2
   });
 
-  //Envelope option state
-  // const [env, setEnv] = useState({
-  //   attack: attackState,
-  //   decay: decayState,
-  //   sustain: sustainState,
-  //   release: releaseState
+  // const [osc, setOsc] = useState({
+  //   type: "sawtooth",
+  //   count: 3,
+  //   harmonicity: 1,
+  //   modulationFrequency: 0.4,
+  //   modulationIndex: 2,
+  //   modulationType: "square",
+  //   phase: 0,
+  //   spread: 20,
+  //   width: 0.2
   // });
 
+  //Envelope option state
   const [env, setEnv] = useState({
-    attack: 0.01,
-    decay: 0.1,
-    sustain: 0.3,
-    release: 0.5
+    attack: attackState,
+    decay: decayState,
+    sustain: sustainState,
+    release: releaseState
   });
+
+  // const [env, setEnv] = useState({
+  //   attack: 0.01,
+  //   decay: 0.1,
+  //   sustain: 0.3,
+  //   release: 0.5
+  // });
 
   //Synth + Keys
   const pianoKeys = document.querySelectorAll(".piano-keys .key");
   const [synth, setSynth] = useState(new Tone.PolySynth(Tone.Synth, {envelope: env, oscillator: osc, volume: volume}).toDestination());
   const [keyShown, setKeyShown] = useState(true);
-
+  
   //Character-to-number conversion -> for randomise
   const alphaVal = (s) => s.toLowerCase().charCodeAt(0) - 97
 
@@ -71,14 +71,15 @@ function App() {
   const playKey = (note) => {
     const now = Tone.now();
     synth.triggerAttack(note, now);
-    synth.triggerRelease(note, now + 0.25)
+    synth.triggerRelease(note, now + noteDrag);
     //console.log(note);
   }
 
   //Changes synth
   const changeSynth = () => {
     //changes to Metallic ePiano from sounds.js >>>> needs change
-    setSynth(new Tone.PolySynth(Tone.Synth, sounds[0]).toDestination());
+    setSynth(new Tone.PolySynth(Tone.Synth, soundLookup()).toDestination());
+    console.log(synth.options);
   }
 
   //Updates all states (incl. options AND synth)
@@ -108,7 +109,6 @@ function App() {
     setSynth(new Tone.PolySynth(Tone.Synth, {
       envelope: updateEnv, 
       oscillator: updateOsc,
-      volume: volume
     }).toDestination());
     console.log(synth.options.envelope, synth.options.oscillator);
   }
@@ -136,9 +136,12 @@ function App() {
     });
 
     bestFit.sort((a, b) => (a.score > b.score) ? -1 : 1)
-    console.log(bestFit);
+
+    //console.log(bestFit);
     //console.log(bestFit[0]);
-    //console.log(bestFit[0].sound);
+    console.log(bestFit[0].sound);
+
+    return bestFit[0].sound;
   }
 
   //Update keyword array for search in sounds.js
@@ -156,8 +159,11 @@ function App() {
     }
   }
 
+  //AudioContext init
   document.addEventListener("click", async () => {
     if(contextStarted === false) {
+      Tone.Transport.bpm.value = 120;
+      Tone.Transport.start(); 
       await Tone.start();
       setStarted(true);
     }
@@ -169,23 +175,28 @@ function App() {
       key.classList.toggle("hide");
     });
   }, [keyShown])
-  
+
+  //Dynamic volume change
+  useEffect(() => {
+    synth.volume.value = volume;
+  }, [volume])
+
   return (
     <>
     <div className="piano-container">
       <header>
           <div className="column volume-slider">
-            <span>Volume</span><input type="range" min="-25" max="10" value={volume} step="any" onChange={(e) => setVolume(e.target.value)}></input>
+            <span>Volume</span><input type="range" min="-20" max="5" value={volume} step="0.1" onChange={(e) => setVolume(e.target.value)}></input>
           </div>
           <div className="column drag-slider">
-            <span>Note Drag</span><input type="range" min="0" max="3" value={noteDrag} step="any" onChange={(e) => setNoteDrag(e.target.value)}></input>
+            <span>Note Drag</span><input type="range" min="0" max="2" value={noteDrag} step="0.125" onChange={(e) => setNoteDrag(parseFloat(e.target.value))}></input>
           </div>
           <div className="column keys-checkbox">
             <span>Show Keys</span><input type="checkbox" onClick={() => toggleKeys()}></input>
           </div>
       </header>
       <input type="input" className="keyword-input" placeholder="Keywords" onChange={(e) => updateKeywords(e)}></input>
-      <button onClick={() => soundLookup()}>Apply!</button>
+      <button onClick={() => changeSynth()}>Apply!</button>
       <br></br><br></br>
       <button onClick={() => randomise()}>Randomise!</button> 
       <ul className="piano-keys">
@@ -206,6 +217,13 @@ function App() {
           <li className="key white" key="D5" onClick={() => playKey("D5")}><span>D5</span></li>
           <li className="key black" key="D#5" onClick={() => playKey("D#5")}><span>D#5</span></li>
           <li className="key white" key="E5"onClick={() => playKey("E5")}><span>E5</span></li>
+          <li className="key white" key="F5" onClick={() => playKey("F5")}><span>F5</span></li>
+          <li className="key black" key="F#5" onClick={() => playKey("F#5")}><span>F#5</span></li>
+          <li className="key white" key="G5" onClick={() => playKey("G5")}><span>G5</span></li>
+          <li className="key black" key="G#5" onClick={() => playKey("G#5")}><span>G#5</span></li>
+          <li className="key white" key="A5" onClick={() => playKey("A5")}><span>A5</span></li>
+          <li className="key black" key="A#5" onClick={() => playKey("A#5")}><span>A#5</span></li>
+          <li className="key white" key="B5" onClick={() => playKey("B5")}><span>B5</span></li>
       </ul>
     </div>
     </>

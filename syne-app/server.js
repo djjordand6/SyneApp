@@ -18,8 +18,10 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cors())
 
+const router = express.Router();
+
 // Set up the ChatGPT endpoint
-app.post("/chat", async (req, res) => {
+router.post("/chat", async (req, res) => {
   // Get the prompt from the request
   const { prompt } = req.body;
 

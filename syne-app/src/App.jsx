@@ -119,11 +119,13 @@ function App() {
 
   //Looks up the keywords in the sounds database
   //Assigns a score for how well a sound's keywords fit
+  //Implement: ChatGPT/GPT-4 keyword expansion -> takes word(s) and finds ones closely linked to it 
   const soundLookup = () => {
     var bestFit = []
 
     sounds.forEach(sound => {
       const skw = sound.keywords.toString().split(" ");
+      const conciseness = skw.length; //Higher is better -> thinking here: more words = more concise
 
       var score = 0;
       keywords.forEach(word => {
@@ -132,12 +134,13 @@ function App() {
         }
       });
 
-      bestFit.push({sound, score});
+      bestFit.push({sound, score, conciseness});
     });
 
-    bestFit.sort((a, b) => (a.score > b.score) ? -1 : 1)
+    bestFit.sort((a, b) => (a.conciseness > b.conciseness) ? -1 : 1)
+    bestFit.sort((a, b) => (a.score > b.score) ? -1 : 1);
 
-    //console.log(bestFit);
+    console.log(bestFit);
     //console.log(bestFit[0]);
     console.log(bestFit[0].sound);
 

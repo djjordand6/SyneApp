@@ -22,7 +22,7 @@ export default [
         id: 0
     },
     {
-        keywords: "metallic epiano",
+        keywords: "metallic epiano shiny silver gold copper bronze aluminum iron steel rusted hard cold heavy conductor magnetism luster reflection glare conductivity strength durability toughness alloy",
         oscillator: {
             type: "sawtooth6",
             count: 3,
@@ -124,7 +124,7 @@ export default [
         id: 5
     },
     {
-        keywords: "haunting haunt scary scare spooky halloween",
+        keywords: "haunting haunt scary scare spooky halloween ominous phobia disturbing ghostly supernatural",
         oscillator: {
             partialCount: 16,
             partials: [
@@ -181,7 +181,7 @@ export default [
         id: 7
     },
     {
-        keywords: "xylophone",
+        keywords: "music percussion instrument keys wooden mallets sound bars orchestra melody harmony rhythm tunes performance children play toy school class",
         oscillator: {
             type: "sine",
             phase: 0,

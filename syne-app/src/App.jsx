@@ -62,28 +62,6 @@ function App() {
   const pianoKeys = document.querySelectorAll(".piano-keys .key");
   const [synth, setSynth] = useState(new Tone.PolySynth(Tone.Synth, {envelope: env, oscillator: osc, volume: volume}).toDestination());
   const [keyShown, setKeyShown] = useState(true);
-  
-  //Character-to-number conversion -> for randomise
-  const alphaVal = (s) => s.toLowerCase().charCodeAt(0) - 97
-
-  const toggleConstantNote = () => {
-    if(constantNote === true) {
-      setConstantNote(false);
-    } else {
-      setConstantNote(true);
-    }
-  }
-
-  //Plays the given key
-  const playKey = (note) => {
-    synth.triggerAttackRelease(note, "8n");
-    //console.log(note);
-  }
-
-  // const stopKey = (note) => {
-  //   const now = Tone.now();
-  //   synth.triggerRelease(note, now);
-  // }
 
   //Changes synth
   const changeSynth = () => {
@@ -92,45 +70,64 @@ function App() {
     console.log(synth.options);
   }
 
-  //Updates all states (incl. options AND synth)
-  const updateSynth = () => {
-    const updateOsc = {
-      type: oscillatorType,
-      count: 3,
-      harmonicity: 1,
-      modulationFrequency: 0.4,
-      modulationIndex: 2,
-      modulationType: "square",
-      phase: 0,
-      spread: 20,
-      width: 0.2
-    };
 
-    const updateEnv = {
-      attack: attackState,
-      decay: decayState,
-      sustain: sustainState,
-      release: releaseState
-    };
-
-    setOsc(updateOsc);
-    setEnv(updateEnv);
-    
-    setSynth(new Tone.PolySynth(Tone.Synth, {
-      envelope: updateEnv, 
-      oscillator: updateOsc,
-    }).toDestination());
-    console.log(synth.options.envelope, synth.options.oscillator);
+  //Plays the given key
+  const playKey = (note) => {
+    synth.triggerAttackRelease(note, "8n");
+    //console.log(note);
   }
 
-  //Randomise params
-  const randomise = () => {
-    //TODO: RANDOMISE PARAMS!!!! 
+  //Stops the given key -> for use in click-and-hold playback [DEPRECATED]
+  const stopKey = (note) => {
+    const now = Tone.now();
+    synth.triggerRelease(note, now);
   }
+  
+  //Randomisation functions [DEPRECATED]
+  {
+    //Character-to-number conversion -> for randomise() [DEPRECATED]
+    const alphaVal = (s) => s.toLowerCase().charCodeAt(0) - 97
+
+    //Randomise params [DEPRECATED]
+    const randomise = () => {
+      //TODO: RANDOMISE PARAMS!!!! 
+    }
+
+    //Updates all states (incl. options AND synth) -> for use in randomise() [DEPRECATED]
+    const updateSynth = () => {
+      const updateOsc = {
+        type: oscillatorType,
+        count: 3,
+        harmonicity: 1,
+        modulationFrequency: 0.4,
+        modulationIndex: 2,
+        modulationType: "square",
+        phase: 0,
+        spread: 20,
+        width: 0.2
+      };
+
+      const updateEnv = {
+        attack: attackState,
+        decay: decayState,
+        sustain: sustainState,
+        release: releaseState
+      };
+
+      setOsc(updateOsc);
+      setEnv(updateEnv);
+      
+      setSynth(new Tone.PolySynth(Tone.Synth, {
+        envelope: updateEnv, 
+        oscillator: updateOsc,
+      }).toDestination());
+      console.log(synth.options.envelope, synth.options.oscillator);
+    }
+  }
+
 
   //Looks up the keywords in the sounds database
   //Assigns a score for how well a sound's keywords fit
-  //Implement: ChatGPT/GPT-4 keyword expansion -> takes word(s) and finds ones closely linked to it 
   const soundLookup = () => {
     var bestFit = []
 
@@ -140,6 +137,49 @@ function App() {
 
       var score = 0;
       keywords.forEach(word => {
+        if(skw.includes(word)) {
+          score++;
+        }
+      });
+
+      bestFit.push({sound, score, conciseness});
+    });
+
+    bestFit.sort((a, b) => (a.conciseness > b.conciseness) ? -1 : 1)
+    bestFit.sort((a, b) => (a.score > b.score) ? -1 : 1);
+
+    console.log(bestFit);
+    //console.log(bestFit[0]);
+    console.log(bestFit[0].sound);
+
+    return bestFit[0].sound;
+  }
+
+  //Above function with GPT request
+  //Implement idea: ChatGPT/GPT-4 keyword expansion -> takes word(s) and finds ones closely linked to it 
+  const soundLookupGPT = async () => {
+    const response = await fetch(`http://localhost:8080/chat`, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        prompt: `Please find words that are similar and/or linked to the words: ${keywords}. Return the words only, separated by a space.`
+      }),
+    });
+
+    const data = await response.json();
+    const newKW = data.response.split(" ");
+
+    var bestFit = []
+
+    sounds.forEach(sound => {
+      const skw = sound.keywords.toString().split(" ");
+      const conciseness = skw.length; //Higher is better -> thinking here: more words = more concise
+
+      var score = 0;
+      newKW.forEach(word => {
         if(skw.includes(word)) {
           score++;
         }

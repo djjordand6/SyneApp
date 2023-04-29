@@ -110,3 +110,13 @@ header input {
 .drag-slider input {
     accent-color: #fff;
 }
+
+.synth-details {
+    color: #8c8c8c;
+}
+
+.synth-details header {
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+}

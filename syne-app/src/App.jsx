@@ -14,7 +14,6 @@ function App() {
   const [releaseState, setRelease] = useState(1);             //Default val: 1
   const [oscillatorType, setOscType] = useState("triangle");  //Default val: triangle
   const [volume, setVolume] = useState(0);
-  const [noteDrag, setNoteDrag] = useState(0.25);
 
   //Keyword search
   const [keywords, setKeywords] = useState([]);
@@ -67,13 +66,24 @@ function App() {
   //Character-to-number conversion -> for randomise
   const alphaVal = (s) => s.toLowerCase().charCodeAt(0) - 97
 
+  const toggleConstantNote = () => {
+    if(constantNote === true) {
+      setConstantNote(false);
+    } else {
+      setConstantNote(true);
+    }
+  }
+
   //Plays the given key
   const playKey = (note) => {
-    const now = Tone.now();
-    synth.triggerAttack(note, now);
-    synth.triggerRelease(note, now + noteDrag);
+    synth.triggerAttackRelease(note, "8n");
     //console.log(note);
   }
+
+  // const stopKey = (note) => {
+  //   const now = Tone.now();
+  //   synth.triggerRelease(note, now);
+  // }
 
   //Changes synth
   const changeSynth = () => {
@@ -113,6 +123,7 @@ function App() {
     console.log(synth.options.envelope, synth.options.oscillator);
   }
 
+  //Randomise params
   const randomise = () => {
     //TODO: RANDOMISE PARAMS!!!! 
   }
@@ -184,6 +195,12 @@ function App() {
     synth.volume.value = volume;
   }, [volume])
 
+  //Dynamic Synth options
+  useEffect(() => {
+    setOsc(synth.options.oscillator);
+    setEnv(synth.options.envelope);
+  }, [synth])
+
   return (
     <>
     <div className="piano-container">
@@ -191,17 +208,17 @@ function App() {
           <div className="column volume-slider">
             <span>Volume</span><input type="range" min="-20" max="5" value={volume} step="0.1" onChange={(e) => setVolume(e.target.value)}></input>
           </div>
-          <div className="column drag-slider">
-            <span>Note Drag</span><input type="range" min="0" max="2" value={noteDrag} step="0.125" onChange={(e) => setNoteDrag(parseFloat(e.target.value))}></input>
-          </div>
           <div className="column keys-checkbox">
-            <span>Show Keys</span><input type="checkbox" onClick={() => toggleKeys()}></input>
+            <span>Hide Keys</span><input type="checkbox" onClick={() => toggleKeys()}></input>
           </div>
       </header>
+      <br></br>
       <input type="input" className="keyword-input" placeholder="Keywords" onChange={(e) => updateKeywords(e)}></input>
       <button onClick={() => changeSynth()}>Apply!</button>
-      <br></br><br></br>
-      <button onClick={() => randomise()}>Randomise!</button> 
+      <br></br>
+      {
+        //<button onClick={() => randomise()}>Randomise!</button>
+      }
       <ul className="piano-keys">
           <li className="key white" key="C4" onClick={() => playKey("C4")}><span>C4</span></li>
           <li className="key black" key="C#4" onClick={() => playKey("C#4")}><span>C#4</span></li>
@@ -228,6 +245,38 @@ function App() {
           <li className="key black" key="A#5" onClick={() => playKey("A#5")}><span>A#5</span></li>
           <li className="key white" key="B5" onClick={() => playKey("B5")}><span>B5</span></li>
       </ul>
+      <br></br>
+      <div className="synth-details">
+        <header>
+          <div>
+            <span>Envelope:</span>
+            <div>
+              Attack: {env.attack} <br></br>
+              Decay: {env.decay} <br></br>
+              Sustain: {env.sustain} <br></br>
+              Release: {env.release} <br></br>
+              A. Curve: {env.attackCurve ? (env.attackCurve) : ("N/A")} <br></br>
+              D. Curve: {env.decayCurve ? (env.decayCurve) : ("N/A")} <br></br>
+              S. Curve: {env.sustainCurve ? (env.sustainCurve) : ("N/A")} <br></br>
+              R. Curve: {env.releaseCurve ? (env.releaseCurve) : ("N/A")} <br></br>
+            </div>
+          </div>
+          <div>
+            <span>Oscillator:</span>
+            <div>
+              Type: {osc.type} <br></br>
+              Count: {osc.count ? (osc.count) : ("N/A")} <br></br>
+              Harmonicity: {osc.harmonicity ? (osc.harmonicity) : ("N/A")} <br></br>
+              Phase: {osc.phase ? (osc.phase) : ("N/A") } <br></br>
+              Spread: {osc.spread ? (osc.phase) : ("N/A")} <br></br>
+              Width: {osc.width ? (osc.width) : ("N/A")} <br></br>
+              Modulation Freq: {osc.modulationFrequency ? (osc.modulationFrequency) : ("N/A")} <br></br>
+              Modulation Index: {osc.modulationIndex ? (osc.modulationIndex) : ("N/A")} <br></br>
+              Modulation Type: {osc.modulationType ? (osc.modulationType) : ("N/A")} <br></br>
+            </div>
+          </div>
+        </header>
+      </div>
     </div>
     </>
   )

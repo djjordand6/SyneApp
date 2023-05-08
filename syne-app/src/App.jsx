@@ -3,6 +3,9 @@ import "./App.css";
 import * as Tone from 'tone';
 import sounds from "./data/sounds";
 
+//HTML base structure and CSS base styling inspired by CodingNepal's 'Build a playable PIANO in HTML CSS & JavaScript'
+//See here: https://www.codingnepalweb.com/playable-piano-html-css-javascript/
+
 function App() {
   //State for AudioContext start
   const [contextStarted, setStarted] = useState(false);
@@ -31,17 +34,6 @@ function App() {
     width: 0.2
   });
 
-  // const [osc, setOsc] = useState({
-  //   type: "sawtooth",
-  //   count: 3,
-  //   harmonicity: 1,
-  //   modulationFrequency: 0.4,
-  //   modulationIndex: 2,
-  //   modulationType: "square",
-  //   phase: 0,
-  //   spread: 20,
-  //   width: 0.2
-  // });
 
   //Envelope option state
   const [env, setEnv] = useState({
@@ -50,13 +42,6 @@ function App() {
     sustain: sustainState,
     release: releaseState
   });
-
-  // const [env, setEnv] = useState({
-  //   attack: 0.01,
-  //   decay: 0.1,
-  //   sustain: 0.3,
-  //   release: 0.5
-  // });
 
   //Synth + Keys
   const pianoKeys = document.querySelectorAll(".piano-keys .key");
@@ -67,7 +52,7 @@ function App() {
   const changeSynth = () => {
     //changes to Metallic ePiano from sounds.js >>>> needs change
     setSynth(new Tone.PolySynth(Tone.Synth, soundLookup()).toDestination());
-    console.log(synth.options);
+    //console.log(synth.options);
   }
 
 
@@ -90,7 +75,8 @@ function App() {
 
     //Randomise params [DEPRECATED]
     const randomise = () => {
-      //TODO: RANDOMISE PARAMS!!!! 
+      //Pick a number in a range
+      //or use alphaVal() to generate a numerical value for the input which can be manipulated
     }
 
     //Updates all states (incl. options AND synth) -> for use in randomise() [DEPRECATED]
@@ -121,7 +107,7 @@ function App() {
         envelope: updateEnv, 
         oscillator: updateOsc,
       }).toDestination());
-      console.log(synth.options.envelope, synth.options.oscillator);
+      //console.log(synth.options.envelope, synth.options.oscillator);
     }
   }
 
@@ -148,9 +134,9 @@ function App() {
     bestFit.sort((a, b) => (a.conciseness > b.conciseness) ? -1 : 1)
     bestFit.sort((a, b) => (a.score > b.score) ? -1 : 1);
 
-    console.log(bestFit);
+    //console.log(bestFit);
     //console.log(bestFit[0]);
-    console.log(bestFit[0].sound);
+    //console.log(bestFit[0].sound);
 
     return bestFit[0].sound;
   }
@@ -165,12 +151,12 @@ function App() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        prompt: `Please find words that are similar and/or linked to the words: ${keywords}. Return the words only, separated by a space.`
+        prompt: `Please find words that are similar and/or linked to the words: ${keywords}. Return the words ONLY, separated by a space.`
       }),
     });
 
     const data = await response.json();
-    const newKW = data.response.split(" ");
+    const newKW = data.choices[1].content.split(" ");
 
     var bestFit = []
 
@@ -191,9 +177,9 @@ function App() {
     bestFit.sort((a, b) => (a.conciseness > b.conciseness) ? -1 : 1)
     bestFit.sort((a, b) => (a.score > b.score) ? -1 : 1);
 
-    console.log(bestFit);
+    //console.log(bestFit);
     //console.log(bestFit[0]);
-    console.log(bestFit[0].sound);
+    //console.log(bestFit[0].sound);
 
     return bestFit[0].sound;
   }

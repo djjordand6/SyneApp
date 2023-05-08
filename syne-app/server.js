@@ -12,7 +12,7 @@ const configuration = new Configuration({
   apiKey: API_KEY,
 });
 const openai = new OpenAIApi(configuration);
-console.log(API_KEY);
+//console.log(API_KEY);
 
 const app = express();
 app.use(bodyParser.json());
